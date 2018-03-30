@@ -1,6 +1,7 @@
 from numpy import *
 import operator
 import sys
+from os import listdir
 
 
 def createDataSet():
@@ -55,4 +56,45 @@ datingDateMat,datingLabels=file2matrix('datingTestSet.txt')
 
 # print datingDateMat[:5],datingLabels[:5]
 
+def img2vector(filename):
+    returnVect=zeros((1,1024))
 
+    fr= open(filename,'r')
+    for i in range(32):
+        lineStr=fr.readline()
+        for j in range(32):
+            returnVect[0,32*i+j]=int(lineStr[j])
+    return returnVect
+
+
+def handwritingClassTest():
+    hwLabels=[]
+    trainingFileList=listdir('trainingDigits')
+    m=len(trainingFileList)
+
+    trainingMat=zeros((m,1024))
+    for i in range(m):
+        fileNameStr=trainingFileList[i]
+        fileStr=fileNameStr.split('.')[0]
+        classNumStr=int(fileStr.split('_')[0])
+        hwLabels.append(classNumStr)
+
+        trainingMat[i,:]=img2vector('trainingDigits/%s'%fileNameStr)
+
+    testFileList=listdir('testDigits')
+    errorCount=0.0
+    mTest=len(testFileList)
+
+    for i in range(mTest):
+        fileNameStr=testFileList[i]
+        fileStr=fileNameStr.split('.')[0]
+        classNumStr=int(fileStr.split('_')[0])
+
+        vectorUnderTest=img2vector('testDigits/%s'%fileNameStr)
+        classifierResult=classfy0(vectorUnderTest,trainingMat,hwLabels,3)
+        print 'The classifier result: %d, the real answer: %d'%(classifierResult,classNumStr)
+
+        if classNumStr!=classifierResult:
+            errorCount+=1.0
+
+    print 'Error rate: %f'%(errorCount/float(mTest))
